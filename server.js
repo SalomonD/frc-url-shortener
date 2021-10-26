@@ -42,8 +42,11 @@ app.post('/api/shorturl', function(req, res) {
           console.log("rsult: ", result)
           if(err) res.json({error})
           else if(result) {
+            let endOrg = sp[1].split('/')
+            endOrg = endOrg[0].trim().length ? endOrg.join("") : endOrg[0]
+
             allURL.push({
-              original_url: [sp[0], "//", sp[1].split("/")[0]].join(""),
+              original_url: [sp[0], "//", endOrg].join(""),
               short_url: allURL.length + 1
             })
 
@@ -62,7 +65,9 @@ app.post('/api/shorturl', function(req, res) {
     if (fs.existsSync(path)){
       let urls = fs.readFileSync(path, {encoding: "utf-8"});
       urls = JSON.parse(urls);
-      let checkURL = urls.filter(u => u["original_url"] === [sp[0], "//", sp[1].split("/")[0]].join(""));
+      let endOrg = sp[1].split('/')
+      endOrg = endOrg[0].trim().length ? endOrg.join("") : endOrg[0]
+      let checkURL = urls.filter(u => u["original_url"] === [sp[0], "//", endOrg].join(""));
       if (checkURL.length){
         res.json(checkURL[0])
       } else {
@@ -74,6 +79,8 @@ app.post('/api/shorturl', function(req, res) {
     }
   }
 });
+
+console.log("dfd/ddfdf".split("/"))
 
 app.get('/api/shorturl/:id', function(req, res) {
   const { id } = req.params;
@@ -93,7 +100,6 @@ app.get('/api/shorturl/:id', function(req, res) {
     res.json({error});
   }
 });
-
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
