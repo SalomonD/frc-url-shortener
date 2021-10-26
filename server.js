@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const dns = require('dns')
 const fs = require('fs')
 const validUrl = require('valid-url')
-const shortid = require('shortid')
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
@@ -28,42 +27,51 @@ app.get('/api/hello', function(req, res) {
 app.post('/api/shorturl', function(req, res) {
   const { url } = req.body;
   const error = 'invalid url';
-  console.log(url.split("/"))
+  console.log(url)
 
   if (!validUrl.isUri(url)) {
     res.json({error});
-  }
+  } else {
+    const sp = url.split("//");
+    console.log(sp);
 
-  const sp = url.split("/");
+    let checker = (allURL) => {
+      if (sp.length >= 2){
+        dns.lookup(sp[1].split("/")[0], function(err, result) {
+          console.log("error: ", err)
+          console.log("rsult: ", result)
+          if(err) res.json({error})
+          else if(result) {
+            allURL.push({
+              original_url: [sp[0], "//", sp[1].split("/")[0]].join(""),
+              short_url: allURL.length + 1
+            })
 
-  let checker = (allURL) => {
-    dns.lookup(sp[2], function(err, result) {
-      if(err) res.json({error})
-      else {
-        allURL.push({
-          original_url: [sp[0], "//", sp[2]].join(""),
-          short_url: allURL.length + 1
-        })
-
-        fs.writeFileSync(path,JSON.stringify(allURL), {encoding: 'utf-8'})
-        res.json(allURL[allURL.length - 1])
+            fs.writeFileSync(path,JSON.stringify(allURL), {encoding: 'utf-8'})
+            res.json(allURL[allURL.length - 1])
+          } else {
+            res.json({error});
+          }
+        });
+      } else {
+        res.json({error});
       }
-    });
-  }
+    }
 
-  const path = __dirname + "/urls.json";
-  if (fs.existsSync(path)){
-    let urls = fs.readFileSync(path, {encoding: "utf-8"});
-    urls = JSON.parse(urls);
-    let checkURL = urls.filter(u => u["original_url"] === [sp[0], "//", sp[2]].join(""));
-    if (checkURL.length){
-      res.json(checkURL[0])
+    const path = __dirname + "/urls.json";
+    if (fs.existsSync(path)){
+      let urls = fs.readFileSync(path, {encoding: "utf-8"});
+      urls = JSON.parse(urls);
+      let checkURL = urls.filter(u => u["original_url"] === [sp[0], "//", sp[1].split("/")[0]].join(""));
+      if (checkURL.length){
+        res.json(checkURL[0])
+      } else {
+        checker(urls);
+      }
     } else {
+      let urls = []
       checker(urls);
     }
-  } else {
-    let urls = []
-    checker(urls);
   }
 });
 
