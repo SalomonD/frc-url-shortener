@@ -26,7 +26,7 @@ app.get('/api/hello', function (req, res) {
 
 app.post('/api/shorturl', function (req, res) {
     const {url} = req.body;
-    const error = 'invalid url';
+    const error = 'Invalid URL';
     console.log(url)
 
     if (!validUrl.isUri(url)) {
@@ -78,7 +78,7 @@ app.post('/api/shorturl', function (req, res) {
     }
 });
 
-console.log("dfd/ddfdf".split("/"))
+console.log("dfd/ddfdf".split("/"));
 
 app.get('/api/shorturl/:id', function (req, res) {
     const {id} = req.params;
